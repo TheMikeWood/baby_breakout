@@ -41,6 +41,7 @@
         align-items: center;
         flex-wrap: wrap;
         font-weight: 700;
+        margin: 12px 0;
       }
       .pill {
         background: #332450;
@@ -254,23 +255,6 @@
             opponent!
           </div>
         </div>
-        <div class="stats">
-          <span class="pill" id="count">🧸 P1 0 · CPU 0</span
-          ><span class="pill"
-            >⚡
-            <span class="meter"
-              ><span class="fill" id="stamina"></span></span></span
-          ><span class="pill"
-            ><span id="p2label">CPU ⚡</span>
-            <span class="meter"
-              ><span class="fill" id="stamina2"></span></span></span
-          ><span class="pill" id="status">👀 Hiding</span
-          ><button id="retry" class="mini">↻ Retry (R)</button
-          ><button id="musicBtn" class="mini" title="Music (M)">🎵</button
-          ><button id="sfxBtn" class="mini" title="Sound effects (N)">
-            🔊
-          </button>
-        </div>
       </div>
       <section id="lobby">
         <b>🌐 Online multiplayer (2 players)</b>
@@ -302,6 +286,21 @@
         </div>
         <div id="lobbyStatus">Offline. Solo vs CPU is available.</div>
       </section>
+      <div class="stats">
+        <span class="pill" id="count">🧸 P1 0 · CPU 0</span
+        ><span class="pill"
+          >⚡
+          <span class="meter"
+            ><span class="fill" id="stamina"></span></span></span
+        ><span class="pill"
+          ><span id="p2label">CPU ⚡</span>
+          <span class="meter"
+            ><span class="fill" id="stamina2"></span></span></span
+        ><span class="pill" id="status">👀 Hiding</span
+        ><button id="retry" class="mini">↻ Retry (R)</button
+        ><button id="musicBtn" class="mini" title="Music (M)">🎵</button
+        ><button id="sfxBtn" class="mini" title="Sound effects (N)">🔊</button>
+      </div>
       <div id="frame">
         <canvas id="game" width="1536" height="1024"></canvas>
         <div id="overlay">
@@ -1275,15 +1274,16 @@
       function finish(caught = false) {
         mode = "end";
         document.getElementById("overlay").classList.remove("hidden");
-        document.getElementById("headline").textContent = caught
-          ? "BOTH BABIES CAUGHT! 🍼"
-          : players[0].score === players[1].score
+        const localIndex =
+          typeof netRole !== "undefined" && netRole === "guest" ? 1 : 0;
+        const myScore = players[localIndex].score,
+          otherScore = players[1 - localIndex].score;
+        document.getElementById("headline").textContent =
+          myScore === otherScore
             ? "IT’S A TIE!"
-            : players[0].score > players[1].score
-              ? "PLAYER 1 WINS! 🎉"
-              : cpuP2
-                ? "CPU WINS! 🤖"
-                : "PLAYER 2 WINS! 🎉";
+            : myScore > otherScore
+              ? "YOU WIN! 🎉"
+              : "YOU LOSE! 🍼";
         document.getElementById("message").textContent =
           "Final score: Player 1 " +
           players[0].score +
