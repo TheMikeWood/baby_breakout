@@ -1330,7 +1330,12 @@
         byId("overlay").classList.add("hidden");
         if (netRole === "host") netConn.send({ type: "start" });
       }
+      function syncLobbyVisibility() {
+        const lobby = document.getElementById("lobby");
+        if (lobby) lobby.classList.toggle("hidden", mode !== "menu");
+      }
       function frame(t) {
+        syncLobbyVisibility();
         let dt = Math.min(0.035, (t - last) / 1000 || 0);
         last = t;
         if (netRole === "guest") {
