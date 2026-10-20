@@ -244,6 +244,177 @@
       }
     </style>
     <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+    <style id="mobileStyles">
+      html,
+      body {
+        overscroll-behavior: none;
+      }
+      #mobileControls {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 12px 0;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #mobileControls .pad {
+        display: grid;
+        grid-template-columns: repeat(3, 55px);
+        grid-template-rows: repeat(3, 55px);
+        gap: 3px;
+        touch-action: none;
+      }
+      #mobileControls button {
+        padding: 0;
+        touch-action: none;
+        font-size: 20px;
+        min-width: 55px;
+      }
+      #mobileControls [data-dir="up"] {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      #mobileControls [data-dir="left"] {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      #mobileControls [data-dir="down"] {
+        grid-column: 2;
+        grid-row: 3;
+      }
+      #mobileControls [data-dir="right"] {
+        grid-column: 3;
+        grid-row: 2;
+      }
+      #mobileControls .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      #mobileControls .actions button {
+        min-width: 100px;
+        min-height: 62px;
+      }
+      #mobileSprint {
+        background: #76e6f9;
+      }
+      #mobileControls .pressed {
+        filter: brightness(1.3);
+      }
+      @media (pointer: coarse), (max-width: 800px) {
+        main {
+          padding: 7px;
+        }
+        #mobileControls {
+          display: flex;
+        }
+        #frame {
+          border-width: 2px;
+          margin-top: 6px;
+        }
+        .stats {
+          gap: 5px;
+        }
+        .pill {
+          padding: 5px;
+          font-size: 12px;
+        }
+        .meter {
+          width: 55px;
+          height: 10px;
+        }
+        .panel {
+          padding: 10px;
+          max-width: 96%;
+        }
+        .panel h2 {
+          font-size: 23px;
+        }
+        #logo {
+          max-height: 110px;
+          width: auto;
+        }
+        #cozy {
+          max-height: 100px;
+          width: auto;
+        }
+        #overlay {
+          padding: 5px;
+        }
+        #lobby {
+          padding: 9px;
+        }
+        #lobby input {
+          max-width: 100%;
+        }
+        .bottom {
+          font-size: 12px;
+        }
+      }
+      @media (max-width: 350px) {
+        #mobileControls .pad {
+          grid-template-columns: repeat(3, 46px);
+          grid-template-rows: repeat(3, 46px);
+        }
+        #mobileControls button {
+          min-width: 46px;
+        }
+        #mobileControls .actions button {
+          min-width: 88px;
+        }
+      }
+    </style>
+    <script id="deviceModeScript">
+      (function () {
+        const ua = navigator.userAgent || "";
+        const mobileUA =
+          /Android|iPhone|iPad|iPod|Mobile|Windows Phone|Silk/i.test(ua);
+        const tabletIPad =
+          navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+        const mobile = mobileUA || tabletIPad;
+        window.bbIsMobileDevice = mobile;
+        document.documentElement.classList.add(
+          mobile ? "bb-mobile" : "bb-desktop",
+        );
+      })();
+    </script>
+    <style id="deviceVisibilityStyle">
+      /* Only device detection, not viewport width, enables touch controls. */
+      #mobileControls {
+        display: none !important;
+      }
+      html.bb-mobile #mobileControls {
+        display: flex !important;
+      }
+      html.bb-desktop #game {
+        touch-action: auto;
+      }
+    </style>
+    <style id="tapMoveStyle">
+      #mobileControls {
+        justify-content: space-between;
+        align-items: center;
+      }
+      #mobileControls .tapHint {
+        font-size: 13px;
+        color: #f7e4ff;
+        font-weight: 700;
+      }
+      #mobileThrow {
+        background: #ffc443;
+        min-height: 52px;
+        min-width: 110px;
+      }
+      #game {
+        touch-action: none;
+      }
+      @media (pointer: coarse), (max-width: 800px) {
+        #mobileControls {
+          display: flex;
+        }
+      }
+    </style>
   </head>
   <body>
     <main>
@@ -287,7 +458,7 @@
         <div id="lobbyStatus">Offline. Solo vs CPU is available.</div>
       </section>
       <div class="stats">
-        <span class="pill" id="count">🧸 P1 0 · CPU 0</span
+        <span class="pill" id="count">🧸 Player 1 Score: 0 · CPU Score: 0</span
         ><span class="pill"
           >⚡
           <span class="meter"
@@ -324,15 +495,19 @@
           </div>
         </div>
       </div>
+      <section id="mobileControls" aria-label="Mobile game controls">
+        <span class="tapHint">Tap to walk · Double-tap to run</span
+        ><button id="mobileThrow">🧸 THROW</button>
+      </section>
       <div class="bottom">
         <div>
-          <b>Player 1:</b> WASD move · Shift sprint · F throw ·
+          <b>Player 1:</b> WASD / Arrow keys move · Shift sprint · F throw ·
           <span id="held0">Empty hands</span><br /><b>Player 2:</b> CPU rival by
-          default · Press J to join/leave · Arrow keys move · Enter sprint · /
-          throw · <span id="held1">Empty hands</span><br /><small
-            >Competitive solo vs CPU or two local players. Use the online lobby
-            above to invite a second player. Bank items in the playpen. Sprint
-            7s maximum; 20s recharge.</small
+          default · Online guest: WASD / Arrow keys move · Shift / Enter sprint
+          · F / / throw · <span id="held1">Empty hands</span><br /><small
+            >Solo vs CPU or online two-player. Each player uses their own
+            keyboard. Bank items in the playpen. Sprint 7s maximum; 20s
+            recharge.</small
           >
         </div>
       </div>
@@ -940,12 +1115,19 @@
           if (p === players[1] && cpuP2) {
             cpuControl(p, dt);
           } else {
-            let [u, d, l, r] = p.keys;
-            let dx = Number(keys.has(r)) - Number(keys.has(l)),
-              dy = Number(keys.has(d)) - Number(keys.has(u));
+            const active = p === players[1] ? remoteKeys : keys;
+            let dx =
+                Number(active.has("d") || active.has("ArrowRight")) -
+                Number(active.has("a") || active.has("ArrowLeft")),
+              dy =
+                Number(active.has("s") || active.has("ArrowDown")) -
+                Number(active.has("w") || active.has("ArrowUp"));
             let len = Math.hypot(dx, dy),
               running =
-                len > 0 && keys.has(p.run) && !p.exhausted && p.stamina > 0;
+                len > 0 &&
+                (active.has("Shift") || active.has("Enter")) &&
+                !p.exhausted &&
+                p.stamina > 0;
             if (len) {
               dx /= len;
               dy /= len;
@@ -1098,12 +1280,12 @@
       }
       function updateHud() {
         document.getElementById("count").textContent =
-          "🧸 P1 " +
+          "🧸 Player 1 Score: " +
           players[0].score +
           (players[0].caught ? " (CAUGHT)" : "") +
           " · " +
-          (cpuP2 ? "CPU" : "P2") +
-          " " +
+          (cpuP2 ? "CPU" : "Player 2") +
+          " Score: " +
           players[1].score +
           (players[1].caught ? " (CAUGHT)" : "") +
           " / " +
@@ -1311,7 +1493,7 @@
         byId("headline").classList.add("hidden");
         byId("toTitle").classList.add("hidden");
         byId("message").innerHTML =
-          "Sneak out of the playpen, grab treasures, and bank them before the babysitter catches you.<br><small>P1: WASD · Shift sprint · F throw &nbsp;|&nbsp; P2: press J, arrows · Enter sprint · / throw &nbsp;|&nbsp; R = retry</small>";
+          "Sneak out of the playpen, grab treasures, and bank them before the babysitter catches you.<br><small>WASD or arrows to move · Shift or Enter to sprint · F to throw · Online Player 2 uses their own keyboard</small>";
         byId("start").textContent = "PLAY";
       }
       function startGame() {
@@ -1335,6 +1517,7 @@
         if (lobby) lobby.classList.toggle("hidden", mode !== "menu");
       }
       function frame(t) {
+        if (window.mobileSteer) window.mobileSteer();
         syncLobbyVisibility();
         let dt = Math.min(0.035, (t - last) / 1000 || 0);
         last = t;
@@ -1353,7 +1536,10 @@
       }
       document.getElementById("start").onclick = startGame;
       document.getElementById("retry").onclick = startGame;
-      document.getElementById("toTitle").onclick = showTitle;
+      document.getElementById("toTitle").onclick = () => {
+        if (netRole !== "offline") closeRoom("Host returned to title.");
+        else showTitle();
+      };
       window.addEventListener("keydown", (e) => {
         if (
           [
@@ -1377,21 +1563,10 @@
           startGame();
           return;
         }
-        if (k === "j" && !keys.has(k) && netRole === "offline") {
-          cpuP2 = !cpuP2;
-          notice(cpuP2 ? "CPU teammate active" : "Player 2 joined locally!");
-        }
         if (!keys.has(k) && mode === "play") {
           if (netRole === "guest") {
-            if (k === "f") netConn?.send({ type: "throw" });
-          } else
-            for (const p of players)
-              if (
-                k === p.throw &&
-                !(cpuP2 && p === players[1]) &&
-                !(netRole === "host" && p === players[1])
-              )
-                throwItem(p);
+            if (k === "f" || k === "/") netConn?.send({ type: "throw" });
+          } else if (k === "f") throwItem(players[0]);
         }
         keys.add(k);
       });
@@ -1413,7 +1588,12 @@
         remoteAuthorized = false;
       const setLobbyStatus = (s) => (byId("lobbyStatus").textContent = s);
       const roomId = () => "bb-" + crypto.randomUUID().slice(0, 12);
-      function closeRoom() {
+      function closeRoom(reason = "Host ended the lobby.") {
+        const wasHost = netRole === "host";
+        try {
+          if (wasHost && netConn?.open)
+            netConn.send({ type: "host_left", reason });
+        } catch (e) {}
         try {
           netConn?.close();
           peer?.destroy();
@@ -1457,19 +1637,31 @@
             if (msg.type === "input" && Array.isArray(msg.keys)) {
               remoteKeys = new Set(
                 msg.keys.filter((k) =>
-                  ["w", "a", "s", "d", "Shift"].includes(k),
+                  [
+                    "w",
+                    "a",
+                    "s",
+                    "d",
+                    "Shift",
+                    "ArrowUp",
+                    "ArrowDown",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "Enter",
+                  ].includes(k),
                 ),
               );
-              const p = players[1];
-              for (const k of p.keys.concat([p.run])) keys.delete(k);
-              if (remoteKeys.has("w")) keys.add("ArrowUp");
-              if (remoteKeys.has("s")) keys.add("ArrowDown");
-              if (remoteKeys.has("a")) keys.add("ArrowLeft");
-              if (remoteKeys.has("d")) keys.add("ArrowRight");
-              if (remoteKeys.has("Shift")) keys.add("Enter");
             }
             if (msg.type === "throw" && mode === "play") throwItem(players[1]);
           } else {
+            if (msg.type === "host_left") {
+              const reason = msg.reason || "Host ended the lobby.";
+              closeRoom();
+              setLobbyStatus(reason + " You have been disconnected.");
+              byId("message").textContent =
+                reason + " You have been returned to the title screen.";
+              return;
+            }
             if (msg.type === "reject") {
               setLobbyStatus(msg.reason);
               return;
@@ -1513,9 +1705,19 @@
               "Guest disconnected. CPU rival has taken over. Invite link still active.",
             );
           } else {
-            setLobbyStatus("Host disconnected. Match unavailable.");
-            mode = "menu";
+            const oldPeer = peer;
+            peer = null;
+            try {
+              oldPeer?.destroy();
+            } catch (e) {}
+            netRole = "offline";
+            cpuP2 = true;
+            setLobbyStatus(
+              "Host disconnected. You have been removed from the lobby.",
+            );
             showTitle();
+            byId("message").textContent =
+              "Host disconnected. You have been returned to the title screen.";
           }
         });
         conn.on("error", (e) =>
@@ -1546,7 +1748,18 @@
         netConn.send({
           type: "input",
           keys: [...keys].filter((k) =>
-            ["w", "a", "s", "d", "Shift"].includes(k),
+            [
+              "w",
+              "a",
+              "s",
+              "d",
+              "Shift",
+              "ArrowUp",
+              "ArrowDown",
+              "ArrowLeft",
+              "ArrowRight",
+              "Enter",
+            ].includes(k),
           ),
         });
       }
@@ -1604,7 +1817,21 @@
           setLobbyStatus("Connection failed: " + e.message),
         );
       };
-      byId("leaveRoom").onclick = closeRoom;
+      byId("leaveRoom").onclick = () => closeRoom();
+      window.addEventListener("pagehide", () => {
+        if (netRole === "host") {
+          try {
+            netConn?.send({
+              type: "host_left",
+              reason: "Host closed the game.",
+            });
+          } catch (e) {}
+          try {
+            netConn?.close();
+            peer?.destroy();
+          } catch (e) {}
+        }
+      });
       byId("copyInvite").onclick = async () => {
         const value = byId("inviteLink").value;
         if (!value) return;
@@ -1623,6 +1850,89 @@
           "Invite detected. Enter password if needed, then click Join lobby.",
         );
       }
+    </script>
+    <script id="mobileInputScript">
+      (function () {
+        const canvas = document.getElementById("game");
+        let destination = null,
+          sprint = false,
+          lastTap = 0,
+          lastX = 0,
+          lastY = 0;
+        const movement = ["w", "a", "s", "d", "Shift"];
+        function clear() {
+          movement.forEach((k) => keys.delete(k));
+        }
+        function stop() {
+          destination = null;
+          sprint = false;
+          clear();
+        }
+        function steer() {
+          if (!window.bbIsMobileDevice) return;
+          clear();
+          if (mode !== "play" || !destination) return;
+          const p = players[netRole === "guest" ? 1 : 0];
+          if (!p || p.caught) {
+            stop();
+            return;
+          }
+          if (Math.hypot(destination.x - p.x, destination.y - p.y) < 25) {
+            stop();
+            return;
+          }
+          let target = destination;
+          if (!clearSight(p, destination)) {
+            const route = routeTo(p, destination, false);
+            if (route && route.length) target = route[0];
+          }
+          const dx = target.x - p.x,
+            dy = target.y - p.y;
+          if (dx > 7) keys.add("d");
+          else if (dx < -7) keys.add("a");
+          if (dy > 7) keys.add("s");
+          else if (dy < -7) keys.add("w");
+          if (sprint) keys.add("Shift");
+        }
+        canvas.addEventListener(
+          "pointerdown",
+          (e) => {
+            if (
+              !window.bbIsMobileDevice ||
+              e.pointerType === "mouse" ||
+              mode !== "play"
+            )
+              return;
+            e.preventDefault();
+            const r = canvas.getBoundingClientRect();
+            const x = ((e.clientX - r.left) * canvas.width) / r.width,
+              y = ((e.clientY - r.top) * canvas.height) / r.height,
+              now = performance.now();
+            const twice =
+              now - lastTap < 340 &&
+              Math.hypot(e.clientX - lastX, e.clientY - lastY) < 65;
+            lastTap = now;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            destination = { x, y };
+            sprint = twice;
+          },
+          { passive: false },
+        );
+        document
+          .getElementById("mobileThrow")
+          .addEventListener("pointerdown", (e) => {
+            if (!window.bbIsMobileDevice) return;
+            e.preventDefault();
+            if (mode !== "play") return;
+            if (netRole === "guest") {
+              if (netConn?.open) netConn.send({ type: "throw" });
+            } else if (players[0] && !players[0].caught) throwItem(players[0]);
+          });
+        window.mobileSteer = steer;
+        window.mobileStop = stop;
+        window.addEventListener("blur", stop);
+      })();
     </script>
     <script>
       // ===== Baby Breakout audio =====
